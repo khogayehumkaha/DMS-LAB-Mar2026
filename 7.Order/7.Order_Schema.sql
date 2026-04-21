@@ -1,3 +1,6 @@
+Create database ORDERS;
+use ORDERS;
+
 -- 1. CUSTOMER Table
 CREATE TABLE CUSTOMER (
     CUST_NO INT PRIMARY KEY,

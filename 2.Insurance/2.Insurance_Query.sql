@@ -1,0 +1,124 @@
+Create database Insurance;
+use Insurance;
+
+
+-- 1. PERSON Table
+CREATE TABLE PERSON (
+    D_ID VARCHAR(10) PRIMARY KEY,
+    D_NAME VARCHAR(25) NOT NULL,
+    ADDR VARCHAR(30)
+);
+
+-- 2. CAR Table
+CREATE TABLE CAR (
+    REG_NO VARCHAR(10) PRIMARY KEY,
+    MODEL VARCHAR(10) NOT NULL,
+    YEAR INT -- Changed to INT to represent year (e.g., 2020)
+);
+
+-- 3. ACCIDENT Table
+CREATE TABLE ACCIDENT (
+    REPORT_NUM INT PRIMARY KEY,
+    ACC_DATE DATE,
+    ACC_LOC VARCHAR(30)
+);
+
+-- 4. OWNS Table
+CREATE TABLE OWNS (
+    D_ID VARCHAR(10) REFERENCES PERSON(D_ID),
+    REG_NO VARCHAR(10) REFERENCES CAR(REG_NO),
+    PRIMARY KEY(D_ID, REG_NO)
+);
+
+-- 5. PARTICIPATED Table
+CREATE TABLE PARTICIPATED (
+    D_ID VARCHAR(10) REFERENCES PERSON(D_ID),
+    REG_NO VARCHAR(10) REFERENCES CAR(REG_NO),
+    REPORT_NUM INT REFERENCES ACCIDENT(REPORT_NUM),
+    DAM_AMOUNT INT,
+    PRIMARY KEY (D_ID, REG_NO, REPORT_NUM)
+);
+
+
+
+
+-- Insert People
+INSERT INTO PERSON VALUES ('D111', 'Nithin', 'Udupi');
+INSERT INTO PERSON VALUES ('D222', 'Akash', 'Mangalore');
+INSERT INTO PERSON VALUES ('D333', 'Smitha', 'Bangalore');
+INSERT INTO PERSON VALUES ('D444', 'Rahul', 'Udupi');
+
+-- Insert Cars (Mixed models, multiple Toyotas)
+INSERT INTO CAR VALUES ('KA01', 'Toyota', 2015);
+INSERT INTO CAR VALUES ('KA02', 'Honda', 2018);
+INSERT INTO CAR VALUES ('KA03', 'Toyota', 2020);
+INSERT INTO CAR VALUES ('KA04', 'Toyota', 2019);
+INSERT INTO CAR VALUES ('KA05', 'Toyota', 2021);
+
+-- Insert Accidents (Focus on 2008)
+INSERT INTO ACCIDENT VALUES (1001, '2008-05-12', 'MG Road');
+INSERT INTO ACCIDENT VALUES (1002, '2008-08-20', 'Manipal');
+INSERT INTO ACCIDENT VALUES (1003, '2008-12-01', 'Highway');
+
+-- Establish Ownership
+INSERT INTO OWNS VALUES ('D111', 'KA01');
+INSERT INTO OWNS VALUES ('D222', 'KA02');
+INSERT INTO OWNS VALUES ('D333', 'KA03');
+INSERT INTO OWNS VALUES ('D333', 'KA04');
+INSERT INTO OWNS VALUES ('D333', 'KA05');
+
+-- Record Participation
+INSERT INTO PARTICIPATED VALUES ('D111', 'KA01', 1001, 5000);   -- Min damage 2008
+INSERT INTO PARTICIPATED VALUES ('D333', 'KA03', 1002, 25000);
+INSERT INTO PARTICIPATED VALUES ('D333', 'KA03', 1003, 15000);  -- Smitha involved twice
+
+
+--Query 1
+--List the names of people who owned cars that were involved in accidents in 2008.
+
+SELECT DISTINCT pr.D_NAME
+FROM PERSON pr, PARTICIPATED p, ACCIDENT a
+WHERE pr.D_ID = p.D_ID AND p.REPORT_NUM = a.REPORT_NUM
+AND a.ACC_DATE LIKE '2008%';
+
+
+--Query 2
+--Find the name of owner and his car that has maximum number of accidents in 2008.
+
+SELECT TOP 1 pr.D_NAME, p.REG_NO, COUNT(*) AS Acc_Count
+FROM PERSON pr, PARTICIPATED p, ACCIDENT a
+WHERE pr.D_ID = p.D_ID AND p.REPORT_NUM = a.REPORT_NUM
+AND a.ACC_DATE LIKE '2008%'
+GROUP BY pr.D_NAME, p.REG_NO
+ORDER BY Acc_Count DESC;
+
+--Query 3
+--List the name of owners who own at least two TOYOTA cars.
+
+SELECT pr.D_NAME
+FROM PERSON pr, OWNS o, CAR c
+WHERE pr.D_ID = o.D_ID AND o.REG_NO = c.REG_NO
+AND c.MODEL = 'Toyota'
+GROUP BY pr.D_NAME
+HAVING COUNT(*) >= 2;
+
+
+--Query 4
+--List the name of owner who owns maximum TOYOTA cars.
+
+SELECT TOP 1 pr.D_NAME, COUNT(*) AS Toyota_Count
+FROM PERSON pr, OWNS o, CAR c
+WHERE pr.D_ID = o.D_ID AND o.REG_NO = c.REG_NO
+AND c.MODEL = 'Toyota'
+GROUP BY pr.D_NAME
+ORDER BY Toyota_Count DESC;
+
+
+--Query 5
+--Find the name of owner who owns cars having minimum damage amount for accidents in 2008.
+
+SELECT TOP 1 pr.D_NAME, p.DAM_AMOUNT
+FROM PERSON pr, PARTICIPATED p, ACCIDENT a
+WHERE pr.D_ID = p.D_ID AND p.REPORT_NUM = a.REPORT_NUM
+AND a.ACC_DATE LIKE '2008%'
+ORDER BY p.DAM_AMOUNT ASC;
