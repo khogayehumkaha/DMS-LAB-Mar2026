@@ -1,3 +1,6 @@
+create database STUDENT;
+use STUDENT;
+
 -- 1. STUDENT Table
 CREATE TABLE STUDENT (
     regno VARCHAR(15) PRIMARY KEY,
