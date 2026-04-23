@@ -1,3 +1,11 @@
+
+
+# Movie Database Management System (DBMS Lab)
+
+## 🛠️ 1. Database Schema
+This schema defines actors, directors, movies, casting roles, and viewer ratings.
+
+```sql
 CREATE DATABASE Movie;
 USE Movie;
 
@@ -48,9 +56,14 @@ CREATE TABLE RATINGS (
     STARS INT CHECK(STARS>=0 AND STARS<=5),
     PRIMARY KEY(VIEW_ID, MOV_ID)
 );
+```
 
+---
 
+## 📊 2. Optimized Data Insertion
+Data is structured so that **Anil Kapoor** satisfies Query 1 and **Subhash Ghai** satisfies Query 3.
 
+```sql
 -- Insert Actors
 INSERT INTO ACTOR VALUES (101, 'Anil Kapoor', 'M');
 INSERT INTO ACTOR VALUES (102, 'Sridevi', 'F');
@@ -78,31 +91,51 @@ INSERT INTO VIEWER VALUES (2, 'Anjali', 22, 'F');
 INSERT INTO RATINGS VALUES (1, 501, 4);
 INSERT INTO RATINGS VALUES (2, 501, 2);
 INSERT INTO RATINGS VALUES (1, 503, 5);
+```
 
+---
 
--- Query 1: List all actors who acted in a movie before 2000 and also in a movie after 2017.
+## 🔍 3. SQL Queries and Results
 
-SELECT A.ACT_NAME FROM ACTOR A
+### Query 1: List all actors who acted in a movie before 2000 and also in a movie after 2017.
+```sql
+SELECT A.ACT_NAME
+FROM ACTOR A
 JOIN MOVIE_CAST MC ON A.ACT_ID = MC.ACT_ID
 JOIN MOVIES M ON MC.MOV_ID = M.MOV_ID
 WHERE M.MOV_YEAR < 2000
 INTERSECT
-SELECT A.ACT_NAME FROM ACTOR A
+SELECT A.ACT_NAME
+FROM ACTOR A
 JOIN MOVIE_CAST MC ON A.ACT_ID = MC.ACT_ID
 JOIN MOVIES M ON MC.MOV_ID = M.MOV_ID
 WHERE M.MOV_YEAR > 2017;
+```
+**Output:**
+| ACT_NAME |
+| :--- |
+| Anil Kapoor |
 
--- Query 2: Title of movies and their star ratings (highest rating per movie), sorted by title.
+---
 
+### Query 2: Title of movies and their star ratings (highest rating per movie), sorted by title.
+```sql
 SELECT M.MOV_TITLE, MAX(R.STARS) AS Highest_Stars
 FROM MOVIES M, RATINGS R
 WHERE M.MOV_ID = R.MOV_ID
 GROUP BY M.MOV_TITLE
 ORDER BY M.MOV_TITLE;
+```
+**Output:**
+| MOV_TITLE | Highest_Stars |
+| :--- | :--- |
+| Inception | 5 |
+| Ram Lakhan | 4 |
 
+---
 
--- Query 3: Update rating of all movies directed by ‘Subhash Ghai’ to 5.
-
+### Query 3: Update rating of all movies directed by ‘Subhash Ghai’ to 5.
+```sql
 UPDATE RATINGS
 SET STARS = 5
 WHERE MOV_ID IN (
@@ -115,3 +148,8 @@ WHERE MOV_ID IN (
 SELECT M.MOV_TITLE, R.STARS
 FROM MOVIES M, RATINGS R, DIRECTOR D
 WHERE M.MOV_ID = R.MOV_ID AND M.DIR_ID = D.DIR_ID AND D.DIR_NAME = 'Subhash Ghai';
+```
+**Output:**
+| MOV_TITLE | STARS |
+| :--- | :--- |
+| Ram Lakhan | 5 |
