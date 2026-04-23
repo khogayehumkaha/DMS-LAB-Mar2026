@@ -1,4 +1,10 @@
 
+# Library Database Management System (DBMS Lab)
+
+## 🛠️ 1. Database Schema
+This schema manages the core library entities. It uses `ON DELETE CASCADE` to ensure that when a book is removed, all associated author records, copies, and lending logs are automatically deleted.
+
+```sql
 CREATE DATABASE LibraryDB;
 USE LibraryDB;
 
@@ -53,7 +59,14 @@ CREATE TABLE BOOK_LENDING (
     DUE_DATE DATE,
     PRIMARY KEY (BOOK_ID, BRANCH_ID, CARD_NO)
 );
+```
 
+---
+
+## 📊 2. Optimized Data Insertion
+These statements populate the database so that **Card 101** satisfies the "more than 3 books" query and the partition query shows a spread of years.
+
+```sql
 -- Insert Publishers
 INSERT INTO PUBLISHER VALUES ('Pearson', 'London', '9876543210'), 
                              ('McGraw', 'New York', '8887776660');
@@ -84,33 +97,62 @@ INSERT INTO BOOK_LENDING VALUES (1, 10, 101, '2017-01-10', '2017-01-25'),
                                 (2, 10, 101, '2017-02-15', '2017-03-01'),
                                 (3, 20, 101, '2017-04-12', '2017-04-27'),
                                 (4, 20, 101, '2017-05-05', '2017-05-20');
+```
 
+---
 
+## 🔍 3. SQL Queries and Results
 
--- Query 1: Retrieve details of all books (ID, Title, Publisher, Author, Copies per branch)
+### Query 1: Retrieve details of all books (ID, Title, Publisher, Author, Copies per branch)
+```sql
 SELECT B.BOOK_ID, B.TITLE, B.PUBLISHER_NAME, A.AUTHOR_NAME, C.NO_OF_COPIES, L.BRANCH_NAME
 FROM BOOK B, BOOK_AUTHORS A, BOOK_COPIES C, LIBRARY_BRANCH L
-WHERE B.BOOK_ID = A.BOOK_ID AND B.BOOK_ID = C.BOOK_ID AND L.BRANCH_ID = C.BRANCH_ID;
+WHERE B.BOOK_ID = A.BOOK_ID 
+  AND B.BOOK_ID = C.BOOK_ID 
+  AND L.BRANCH_ID = C.BRANCH_ID;
+```
+**Output:**
+| BOOK_ID | TITLE | PUBLISHER_NAME | AUTHOR_NAME | NO_OF_COPIES | BRANCH_NAME |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | DBMS | Pearson | Navathe | 5 | Main Branch |
+| 2 | OS | Pearson | Silberschatz | 2 | Main Branch |
+| 3 | Networks | McGraw | Tanenbaum | 7 | North Branch |
+| 4 | Java | McGraw | Herbert | 3 | North Branch |
 
+---
 
--- Query 2: Get particulars of borrowers who have borrowed more than 3 books from Jan 2017 to Jun 2017
+### Query 2: Borrowers who borrowed > 3 books from Jan 2017 to Jun 2017
+```sql
 SELECT CARD_NO 
 FROM BOOK_LENDING
 WHERE DATE_OUT BETWEEN '2017-01-01' AND '2017-06-30'
 GROUP BY CARD_NO
 HAVING COUNT(*) > 3;
+```
+**Output:**
+| CARD_NO |
+| :--- |
+| 101 |
 
+---
 
--- Query 3: Delete a book in the BOOK table. (Confirm CASCADE action deletes related records)
--- Deleting Book ID 1 will automatically remove its entries from Authors, Copies, and Lending tables
+### Query 3: Delete a book and confirm CASCADE
+```sql
+-- Delete 'DBMS' (ID 1)
 DELETE FROM BOOK WHERE BOOK_ID = 1;
 
--- Verification (Should return empty)
+-- Verification: Check BOOK_AUTHORS (Should be empty for ID 1)
 SELECT * FROM BOOK_AUTHORS WHERE BOOK_ID = 1;
+```
+**Output:**
+| BOOK_ID | AUTHOR_NAME |
+| :--- | :--- |
+| *(Empty)* | |
 
+---
 
--- Query 4: Partition the BOOK table based on release year and show it in a View
--- (Note: Standard SQL view to categorize by year)
+### Query 4: View partitioning BOOKS by year
+```sql
 CREATE VIEW Book_Year_Partition AS
 SELECT PUB_YEAR, COUNT(BOOK_ID) AS Total_Books
 FROM BOOK
@@ -118,13 +160,30 @@ GROUP BY PUB_YEAR;
 
 -- Verification 
 SELECT * FROM Book_Year_Partition;
+```
+**Output:**
+| PUB_YEAR | Total_Books |
+| :--- | :--- |
+| 2016 | 1 |
+| 2017 | 1 |
+| 2018 | 1 |
 
+---
 
--- Query 5: Create a View of all books and its number of copies currently available in branches
+### Query 5: View of all books and available copies
+```sql
 CREATE VIEW Available_Copies_View AS
 SELECT B.TITLE, L.BRANCH_NAME, C.NO_OF_COPIES
 FROM BOOK B, BOOK_COPIES C, LIBRARY_BRANCH L
 WHERE B.BOOK_ID = C.BOOK_ID AND C.BRANCH_ID = L.BRANCH_ID;
 
 -- Verification 
+
 SELECT * FROM Available_Copies_View;
+```
+**Output:**
+| TITLE | BRANCH_NAME | NO_OF_COPIES |
+| :--- | :--- | :--- |
+| OS | Main Branch | 2 |
+| Networks | North Branch | 7 |
+| Java | North Branch | 3 |
