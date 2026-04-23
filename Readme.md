@@ -1,53 +1,52 @@
-This is the updated **Main Readme.md** file for your root directory. It now includes the **"All In One Hospital"** folder as the flagship project that unifies all the concepts from the other seven labs.
+This is the final, production-ready **Main README.md** for your GitHub repository. It includes the exact navigation paths you provided, a professional overview of the tech stack, and clear instructions for users.
 
------
+***
 
-# Database Management System Lab Solutions 🗄️
+# 🗄️ Database Management System Lab Solutions (Mar-2026)
 
-This repository contains SQL solutions for the **DBMS Laboratory**. It is organized into individual lab programs and a **Unified Master Project** that combines all logic into a single system.
+This repository contains a comprehensive collection of SQL solutions for the DBMS Laboratory. It features individual relational models for various domains and a **flagship unified system** that integrates all advanced database concepts into one ecosystem.
+
+
 
 ## 🌟 Featured: The Master Database
+If you want to master the entire syllabus in a single project, explore the **All In One Hospital** database. It integrates patterns from all 7 individual labs (Division operators, Self-joins, Circular dependencies, and Cascading).
 
-If you want to learn every concept (Joins, Division, Cascading, Views) in one go, start here:
+* 🚀 [**All In One Hospital**](https://github.com/khogayehumkaha/DMS-LAB-Mar2026/tree/main/All%20In%20One%20Hospital)
 
-  * 📂 [**All In One Hospital**](https://www.google.com/search?q=./All%2520In%2520One%2520Hospital) — A unified system that merges the logic of all 7 labs into a single Hospital Management Ecosystem.
-
------
+---
 
 ## 📂 Laboratory Programs
+Each folder contains the full Schema (DDL), Data Insertion (DML), and Query solutions with expected output tables.
 
-Each folder below contains the specific Schema, Data, and Queries for the individual lab exercises.
+| SL No. | Laboratory Folder | Core Database Concept Mastered |
+| :--- | :--- | :--- |
+| 01 | [**1. Employee**](https://github.com/khogayehumkaha/DMS-LAB-Mar2026/tree/main/1.Employee) | Self-Referencing (SuperSSN) & Circular Links |
+| 02 | [**2. Insurance**](https://github.com/khogayehumkaha/DMS-LAB-Mar2026/tree/main/2.Insurance) | Date Filtering & Aggregate Statistics |
+| 03 | [**3. Banking**](https://github.com/khogayehumkaha/DMS-LAB-Mar2026/tree/main/3.Banking) | **Relational Division** (`NOT EXISTS` / `EXCEPT`) |
+| 04 | [**4. Movies**](https://github.com/khogayehumkaha/DMS-LAB-Mar2026/tree/main/4.Movies) | Set Operations (`UNION`, `INTERSECT`) |
+| 05 | [**5. Student**](https://github.com/khogayehumkaha/DMS-LAB-Mar2026/tree/main/5.Student) | Academic Reporting & **SQL Views** |
+| 06 | [**6. Library**](https://github.com/khogayehumkaha/DMS-LAB-Mar2026/tree/main/6.Library) | Data Integrity & **ON DELETE CASCADE** |
+| 07 | [**7. Order**](https://github.com/khogayehumkaha/DMS-LAB-Mar2026/tree/main/7.Order) | Multi-table Join Logic & Logistics Flow |
 
-| SL No. | Folder Name | Description | Key Concept Mastered |
-| :--- | :--- | :--- | :--- |
-| 01 | [**Employee**](https://www.google.com/search?q=./Employee) | Company Management | Self-joins & Circular References |
-| 02 | [**Insurance**](https://www.google.com/search?q=./Insurance) | Car Insurance & Accidents | Date Filtering & `MAX/MIN` |
-| 03 | [**Banking**](https://www.google.com/search?q=./Banking) | Bank Accounts & Loans | **Division Operator** (`NOT EXISTS`) |
-| 04 | [**Movies**](https://www.google.com/search?q=./Movies) | Cinema Database | `INTERSECT` & Subqueries |
-| 05 | [**Student**](https://www.google.com/search?q=./Student) | Academic Grade Reports | Complex `GROUP BY` & **Views** |
-| 06 | [**Library**](https://www.google.com/search?q=./Library) | Library Book Tracking | **ON DELETE CASCADE** |
-| 07 | [**Order**](https://www.google.com/search?q=./Order) | Sales & Logistics | Multi-table Join Optimization |
+---
 
------
+## 🛠️ Tech Stack & Key Learning
+This lab covers the following fundamental RDBMS concepts:
+* **Relational Integrity:** Using Primary and Foreign keys to ensure data consistency.
+* **Normalization:** Designing schemas to reduce redundancy.
+* **Complex Querying:** Using Subqueries, Joins, and Having clauses.
+* **Security & Abstraction:** Implementing `VIEWS` for user-specific data access.
 
-## 🛠️ Concepts Covered
 
-By practicing these solutions, you will master:
 
-1.  **DDL:** Defining tables with Primary and Foreign Key constraints.
-2.  **DML:** Populating data while maintaining referential integrity.
-3.  **Relational Division:** Solving "Find X that does ALL Y" using Double `NOT EXISTS`.
-4.  **Integrity:** implementing `CASCADE` actions to keep data synchronized.
-5.  **Abstraction:** Creating `VIEWS` to simplify complex reporting for end-users.
+## 🚀 How to Execute
+1.  **Clone the Repo:** `git clone https://github.com/khogayehumkaha/DMS-LAB-Mar2026.git`
+2.  **Pick a Project:** Navigate to any folder listed above.
+3.  **Run DDL:** Execute the `CREATE` statements first to build the structure.
+4.  **Run DML:** Execute the `INSERT` statements to populate the records.
+5.  **Test Queries:** Run the provided query scripts and compare them with the output tables in the respective READMEs.
 
-## 🚀 How to Use
+---
 
-1.  Navigate to a folder (e.g., `All In One Hospital`).
-2.  Open the `README.md` file.
-3.  Execute the **Creation Script** to build the tables.
-4.  Execute the **Insertion Script** to add sample records.
-5.  Run the **Queries** to see the resulting output tables.
-
------
 
 *Created for DBMS Lab Practice .*
