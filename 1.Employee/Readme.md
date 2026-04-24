@@ -1,166 +1,234 @@
 
 # Employee Database Management System (DBMS Lab)
 
-This project provides a streamlined and clean implementation of the **Employee Database** (Part A, Problem 1) as per the 18IS507 Lab Manual. 
-
-## 🚀 Overview
-The implementation focuses on a **"Query-Ready"** data setup. Instead of performing multiple updates after insertion, the data is pre-configured so that all queries—including the complex Relational Division in Query 4—produce immediate and visible results.
-
 ## 🛠️ 1. Database Schema
-The schema defines the structure for Employees, Departments, Projects, and their locations. It uses **4-digit SSNs** for simplicity and handles circular dependencies using `ALTER` statements.
+This schema handles complex relationships, including circular dependencies between employees and departments, and project tracking.
 
 ```sql
--- Create Department Table (Initial)
-CREATE TABLE Department (
-    DNUM INT PRIMARY KEY,
+CREATE DATABASE EmployeeDB;
+USE EmployeeDB;
+
+-- 1. DEPARTMENT Table
+CREATE TABLE DEPARTMENT (
+    DNo INT PRIMARY KEY,
     DName VARCHAR(30) UNIQUE NOT NULL,
-    MGRSSN VARCHAR(10),
-    MGRStartDtae DATE
+    MgrSSN VARCHAR(10),
+    MgrStartDate DATE
 );
 
--- Create Employee Table
-CREATE TABLE employee (
+-- 2. EMPLOYEE Table
+CREATE TABLE EMPLOYEE (
     SSN VARCHAR(10) PRIMARY KEY,
     FName VARCHAR(20) NOT NULL,
     LName VARCHAR(20),
     Address VARCHAR(20),
-    Gender CHAR(1),
+    Sex CHAR(1),
     Salary DECIMAL(10,2),
-    SuperSSN VARCHAR(10) REFERENCES employee (SSN),
-    DNO INT
+    SuperSSN VARCHAR(10) REFERENCES EMPLOYEE(SSN),
+    DNo INT REFERENCES DEPARTMENT(DNo)
 );
 
--- Establish Foreign Key Constraints
-ALTER TABLE Department ADD CONSTRAINT FK_Mgr FOREIGN KEY (MGRSSN) REFERENCES employee(SSN);
-ALTER TABLE employee ADD CONSTRAINT FK_Dept FOREIGN KEY (DNO) REFERENCES Department (DNUM);
+-- Circular Dependency: Link Manager SSN back to Employee
+ALTER TABLE DEPARTMENT ADD CONSTRAINT FK_Mgr FOREIGN KEY (MgrSSN) REFERENCES EMPLOYEE(SSN);
 
--- Create DLocation Table
-CREATE TABLE DLocation (
-    DNO INT REFERENCES Department (DNUM),
+-- 3. DLOCATION Table
+CREATE TABLE DLOCATION (
+    DNo INT REFERENCES DEPARTMENT(DNo) ON DELETE CASCADE,
     DLoc VARCHAR(30),
-    PRIMARY KEY (DNO, DLoc)
+    PRIMARY KEY (DNo, DLoc)
 );
 
--- Create Project Table
-CREATE TABLE Project (
-    PNO INT PRIMARY KEY,
+-- 4. PROJECT Table
+CREATE TABLE PROJECT (
+    PNo INT PRIMARY KEY,
     PName VARCHAR(30),
-    PLocation varchar(30),
-    DNO INT REFERENCES Department (DNUM)
+    PLocation VARCHAR(30),
+    DNo INT REFERENCES DEPARTMENT(DNo)
 );
 
--- Create Works_on Table
-CREATE TABLE Works_on (
-    ESSN VARCHAR(10) REFERENCES employee (SSN),
-    PNO INT REFERENCES Project (PNO),
-    hours INT,
-    PRIMARY KEY (ESSN, PNO)
+-- 5. WORKS_ON Table
+CREATE TABLE WORKS_ON (
+    SSN VARCHAR(10) REFERENCES EMPLOYEE(SSN),
+    PNo INT REFERENCES PROJECT(PNo),
+    Hours INT,
+    PRIMARY KEY (SSN, PNo)
+);
+
+-- 6. DEPENDENT Table
+CREATE TABLE DEPENDENT (
+    ESSN VARCHAR(10) REFERENCES EMPLOYEE(SSN) ON DELETE CASCADE,
+    Dependent_Name VARCHAR(20),
+    Sex CHAR(1),
+    Bdate DATE,
+    Relationship VARCHAR(20),
+    PRIMARY KEY (ESSN, Dependent_Name)
 );
 ```
-
 
 ---
 
 ## 📊 2. Data Insertion
-The data is optimized to satisfy the specific logic of the lab queries (e.g., setting an employee's name to 'Codd' and a project to 'Smart City').
+*Data is optimized to ensure all 9 queries return meaningful results.*
 
 ```sql
--- 1. Insert Employees
-INSERT INTO employee (SSN, FName, LName, Address, Gender, Salary) VALUES 
-('1001', 'James', 'Codd', 'Bangalore', 'M', 100000),
-('1002', 'Adithi', 'S', 'Mysore', 'F', 400000),
-('1003', 'Suhas', 'B', 'Udupi', 'M', 900000),
-('1004', 'Nidhi', 'K', 'Mangalore', 'F', 150000);
+-- Insert Base Employees (No DNo yet)
+INSERT INTO EMPLOYEE (SSN, FName, LName, Address, Sex, Salary) VALUES 
+('101', 'James', 'Codd', 'Bangalore', 'M', 1100000),
+('102', 'Adithi', 'S', 'Mysore', 'F', 1200000),
+('103', 'Suhas', 'B', 'Udupi', 'M', 1500000),
+('104', 'Nidhi', 'K', 'Mangalore', 'F', 1050000),
+('105', 'Chetan', 'R', 'Bangalore', 'M', 1100000),
+('106', 'Riya', 'M', 'Mysore', 'F', 950000);
 
--- 2. Insert Departments
-INSERT INTO Department VALUES (1, 'Information Science', '1001', '2020-01-01');
-INSERT INTO Department VALUES (2, 'Research', '1002', '2019-05-15');
-INSERT INTO Department VALUES (3, 'Electrical', '1003', '2021-08-10');
+-- Insert Departments
+INSERT INTO DEPARTMENT VALUES (1, 'Information Science', '101', '2020-01-01');
+INSERT INTO DEPARTMENT VALUES (5, 'Research', '102', '2019-05-15');
 
--- 3. Link Employees to Depts
-UPDATE employee SET DNO=1 WHERE SSN='1001';
-UPDATE employee SET DNO=2 WHERE SSN='1002';
-UPDATE employee SET DNO=1 WHERE SSN='1004';
-UPDATE employee SET DNO=2 WHERE SSN='1003';
+-- Link Employees to Depts
+UPDATE EMPLOYEE SET DNo=1 WHERE SSN IN ('101', '105', '106');
+UPDATE EMPLOYEE SET DNo=5 WHERE SSN IN ('102', '103', '104');
 
--- 4. Insert Locations and Projects
-INSERT INTO DLocation VALUES (1, 'Bangalore'), (2, 'Mysore'), (3, 'Udupi');
-INSERT INTO Project VALUES (10, 'P1','Bangalore', 1), (20, 'Smart City','Mysore', 2), 
-                           (30, 'P3','Udupi', 1);
+-- Projects
+INSERT INTO PROJECT VALUES (10, 'Big Data', 'Stafford', 5);
+INSERT INTO PROJECT VALUES (20, 'Smart City', 'Mysore', 5);
+INSERT INTO PROJECT VALUES (30, 'Cloud Arch', 'Stafford', 5);
 
--- 5. Insert Works_on (Configured so James works on ALL Dept 1 projects)
-INSERT INTO Works_on VALUES ('1001', 10, 4), ('1001', 30, 5); 
-INSERT INTO Works_on VALUES ('1004', 10, 8);                 
-INSERT INTO Works_on VALUES ('1003', 20, 10);                
+-- Works_on (James Codd works on ALL projects of Dept 5)
+INSERT INTO WORKS_ON VALUES ('101', 10, 4), ('101', 20, 5), ('101', 30, 10);
+INSERT INTO WORKS_ON VALUES ('103', 20, 8);
+
+-- Dependents
+INSERT INTO DEPENDENT VALUES ('101', 'Alice', 'F', '2010-01-01', 'Daughter');
+INSERT INTO DEPENDENT VALUES ('102', 'Bob', 'M', '2012-05-05', 'Son');
 ```
 
 ---
 
-## 🔍 3. SQL Queries and Results
+## 🔍 3. Queries and Results
 
-### Query 1
-**Make a list of all project numbers for projects that involve an employee whose last name is ‘Codd’, either as a worker or as a manager of the department.**
+### 1. Employees working on all projects controlled by Dept 5
 ```sql
-SELECT DISTINCT PNO FROM Works_on WHERE ESSN = (SELECT SSN FROM employee WHERE LName='Codd')
-UNION
-SELECT DISTINCT P.PNO FROM Project P, Department D 
-WHERE P.DNO = D.DNUM AND D.MGRSSN = (SELECT SSN FROM employee WHERE LName = 'Codd');
-```
-| PNO |
-| :--- |
-| 10 |
-| 30 |
-
----
-
-### Query 2
-**Show the resulting salaries if every employee working on the ‘Smart City’ project is given a 10 percent raise.**
-```sql
-SELECT FName, LName, 1.1 * Salary AS New_Salary
-FROM employee 
-WHERE SSN IN (SELECT ESSN FROM Works_on WHERE PNO IN (SELECT PNO FROM Project WHERE PName='Smart City'));
-```
-| FName | LName | New_Salary |
-| :--- | :--- | :--- |
-| Suhas | B | 990000.00 |
-
----
-
-### Query 3
-**Find the sum, maximum, minimum, and average salary of the ‘Research’ department.**
-```sql
-SELECT SUM(Salary) AS Total, MAX(Salary) AS Max, MIN(Salary) AS Min, AVG(Salary) AS Avg
-FROM employee WHERE DNO = (SELECT DNUM FROM Department WHERE DName='Research');
-```
-| Total | Max | Min | Avg |
-| :--- | :--- | :--- | :--- |
-| 1300000.00 | 900000.00 | 400000.00 | 650000.00 |
-
----
-
-### Query 4
-**Retrieve the name of each employee who works on ALL the projects controlled by department number 1.**
-```sql
-SELECT FName, LName FROM employee e
+SELECT FName, LName FROM EMPLOYEE E
 WHERE NOT EXISTS (
-    (SELECT PNO FROM Project WHERE DNO=1)
+    (SELECT PNo FROM PROJECT WHERE DNo=5)
     EXCEPT
-    (SELECT PNO FROM Works_on WHERE ESSN=e.SSN)
+    (SELECT PNo FROM WORKS_ON W WHERE W.SSN = E.SSN)
 );
 ```
+**Output:**
 | FName | LName |
 | :--- | :--- |
 | James | Codd |
 
 ---
 
-### Query 5
-**For each department that has more than 2 employees, retrieve the department number and the number of its employees who are making more than Rs. 1,00,000.**
+### 2. Dept # and Count of employees making > 10,00,000 (in depts with > 5 staff)
+*(Note: To see results with small sample data, we use `HAVING COUNT(*) >= 3`)*
 ```sql
-SELECT DNO, COUNT(*) AS Count 
-FROM employee WHERE Salary > 100000 
-GROUP BY DNO HAVING COUNT(*) >= 2;
+SELECT DNo, COUNT(*) AS High_Earners
+FROM EMPLOYEE
+WHERE Salary > 1000000
+GROUP BY DNo
+HAVING DNo IN (SELECT DNo FROM EMPLOYEE GROUP BY DNo HAVING COUNT(*) >= 3);
 ```
-| DNO | Count |
+**Output:**
+| DNo | High_Earners |
 | :--- | :--- |
-| 2 | 2 |
+| 1 | 2 |
+| 5 | 3 |
+
+---
+
+### 3. Projects involving 'Codd' as a worker or manager
+```sql
+SELECT DISTINCT PNo FROM WORKS_ON WHERE SSN = (SELECT SSN FROM EMPLOYEE WHERE LName='Codd')
+UNION
+SELECT DISTINCT P.PNo FROM PROJECT P, DEPARTMENT D 
+WHERE P.DNo = D.DNo AND D.MgrSSN = (SELECT SSN FROM EMPLOYEE WHERE LName = 'Codd');
+```
+**Output:**
+| PNo |
+| :--- |
+| 10 |
+| 20 |
+| 30 |
+
+---
+
+### 4. Project names located in 'Stafford'
+```sql
+SELECT PName FROM PROJECT WHERE PLocation = 'Stafford';
+```
+**Output:**
+| PName |
+| :--- |
+| Big Data |
+| Cloud Arch |
+
+---
+
+### 5. Employees with at least one dependent (Nested Query)
+```sql
+SELECT FName, LName FROM EMPLOYEE 
+WHERE SSN IN (SELECT ESSN FROM DEPENDENT);
+```
+**Output:**
+| FName | LName |
+| :--- | :--- |
+| James | Codd |
+| Adithi | S |
+
+---
+
+### 6. Employees in 'Research' department (Nested Query)
+```sql
+SELECT FName, LName FROM EMPLOYEE 
+WHERE DNo = (SELECT DNo FROM DEPARTMENT WHERE DName = 'Research');
+```
+**Output:**
+| FName | LName |
+| :--- | :--- |
+| Adithi | S |
+| Suhas | B |
+| Nidhi | K |
+
+---
+
+### 7. Managers who have at least one dependent (Nested Query)
+```sql
+SELECT FName, LName FROM EMPLOYEE 
+WHERE SSN IN (SELECT MgrSSN FROM DEPARTMENT)
+AND SSN IN (SELECT ESSN FROM DEPENDENT);
+```
+**Output:**
+| FName | LName |
+| :--- | :--- |
+| James | Codd |
+| Adithi | S |
+
+---
+
+### 8. 10% raise for employees on 'Smart City' project
+```sql
+SELECT FName, LName, Salary AS Old_Salary, (Salary * 1.1) AS New_Salary
+FROM EMPLOYEE 
+WHERE SSN IN (SELECT SSN FROM WORKS_ON WHERE PNo IN (SELECT PNo FROM PROJECT WHERE PName='Smart City'));
+```
+**Output:**
+| FName | LName | Old_Salary | New_Salary |
+| :--- | :--- | :--- | :--- |
+| James | Codd | 1100000.00 | 1210000.00 |
+| Suhas | B | 1500000.00 | 1650000.00 |
+
+---
+
+### 9. Salary statistics for 'Information Science' department
+```sql
+SELECT SUM(Salary) AS Total, MAX(Salary) AS Max, MIN(Salary) AS Min, AVG(Salary) AS Avg
+FROM EMPLOYEE 
+WHERE DNo = (SELECT DNo FROM DEPARTMENT WHERE DName='Information Science');
+```
+**Output:**
+| Total | Max | Min | Avg |
+| :--- | :--- | :--- | :--- |
+| 3150000.00 | 1100000.00 | 950000.00 | 1050000.00 |

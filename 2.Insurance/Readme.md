@@ -1,13 +1,12 @@
 
-
 # Insurance Database Management System (DBMS Lab)
 
 ## 🛠️ 1. Database Schema
-This schema defines the structure for managing driver information, car registrations, and accident records.
+This schema manages drivers, their vehicles, and accident participation records.
 
 ```sql
-CREATE DATABASE Insurance;
-USE Insurance;
+CREATE DATABASE InsuranceDB;
+USE InsuranceDB;
 
 -- 1. PERSON Table
 CREATE TABLE PERSON (
@@ -20,7 +19,7 @@ CREATE TABLE PERSON (
 CREATE TABLE CAR (
     REG_NO VARCHAR(10) PRIMARY KEY,
     MODEL VARCHAR(10) NOT NULL,
-    YEAR INT 
+    YEAR INT
 );
 
 -- 3. ACCIDENT Table
@@ -50,48 +49,45 @@ CREATE TABLE PARTICIPATED (
 ---
 
 ## 📊 2. Optimized Data Insertion
-The following data ensures that **Smitha** satisfies the "Maximum Accidents" and "Maximum Toyota Cars" logic for the queries.
+*Data is structured to include Chicago residents and specific 2008 accident stats.*
 
 ```sql
--- Insert People
-INSERT INTO PERSON VALUES ('D111', 'Nithin', 'Udupi');
-INSERT INTO PERSON VALUES ('D222', 'Akash', 'Mangalore');
-INSERT INTO PERSON VALUES ('D333', 'Smitha', 'Bangalore');
-INSERT INTO PERSON VALUES ('D444', 'Rahul', 'Udupi');
+-- Insert People (Including Chicago for Q6)
+INSERT INTO PERSON VALUES ('D111', 'Nithin', 'Udupi'),
+                          ('D222', 'Akash', 'Mangalore'),
+                          ('D333', 'Smitha', 'Bangalore'),
+                          ('D444', 'Rahul', 'Chicago'),
+                          ('D555', 'John', 'Chicago');
 
--- Insert Cars (Mixed models, multiple Toyotas)
-INSERT INTO CAR VALUES ('KA01', 'Toyota', 2015);
-INSERT INTO CAR VALUES ('KA02', 'Honda', 2018);
-INSERT INTO CAR VALUES ('KA03', 'Toyota', 2020);
-INSERT INTO CAR VALUES ('KA04', 'Toyota', 2019);
-INSERT INTO CAR VALUES ('KA05', 'Toyota', 2021);
+-- Insert Cars (Mixed models, including no-accident car KA06)
+INSERT INTO CAR VALUES ('KA01', 'Toyota', 2015),
+                      ('KA02', 'Honda', 2018),
+                      ('KA03', 'Toyota', 2020),
+                      ('KA04', 'Toyota', 2019),
+                      ('KA05', 'Toyota', 2021),
+                      ('KA06', 'Ford', 2022);
 
--- Insert Accidents (Focus on 2008)
-INSERT INTO ACCIDENT VALUES (1001, '2008-05-12', 'MG Road');
-INSERT INTO ACCIDENT VALUES (1002, '2008-08-20', 'Manipal');
-INSERT INTO ACCIDENT VALUES (1003, '2008-12-01', 'Highway');
+-- Insert Accidents (2008 focus)
+INSERT INTO ACCIDENT VALUES (1001, '2008-05-12', 'MG Road'),
+                            (1002, '2008-08-20', 'Manipal'),
+                            (1003, '2008-12-01', 'Highway');
 
 -- Establish Ownership
-INSERT INTO OWNS VALUES ('D111', 'KA01');
-INSERT INTO OWNS VALUES ('D222', 'KA02');
-INSERT INTO OWNS VALUES ('D333', 'KA03');
-INSERT INTO OWNS VALUES ('D333', 'KA04');
-INSERT INTO OWNS VALUES ('D333', 'KA05');
+INSERT INTO OWNS VALUES ('D111', 'KA01'), ('D222', 'KA02'), 
+                        ('D333', 'KA03'), ('D333', 'KA04'), 
+                        ('D333', 'KA05'), ('D444', 'KA06');
 
--- Record Participation
--- Nithin: 1 Accident
-INSERT INTO PARTICIPATED VALUES ('D111', 'KA01', 1001, 5000); 
-
--- Smitha: 2 Accidents (Ensures Smitha is the result for Query 2)
-INSERT INTO PARTICIPATED VALUES ('D333', 'KA03', 1002, 25000);
-INSERT INTO PARTICIPATED VALUES ('D333', 'KA03', 1003, 15000); 
+-- Record Participation (Avg damage = 15,000)
+INSERT INTO PARTICIPATED VALUES ('D111', 'KA01', 1001, 5000), 
+                                ('D333', 'KA03', 1002, 25000),
+                                ('D333', 'KA03', 1003, 15000);
 ```
 
 ---
 
-## 🔍 3. SQL Queries and Results
+## 🔍 3. Queries and Results
 
-### Query 1: Names of people involved in accidents in 2008
+### 1. People involved in accidents in 2008
 ```sql
 SELECT DISTINCT pr.D_NAME
 FROM PERSON pr, PARTICIPATED p, ACCIDENT a
@@ -106,7 +102,7 @@ AND a.ACC_DATE LIKE '2008%';
 
 ---
 
-### Query 2: Owner and car with maximum number of accidents in 2008
+### 2. Owner and Car with maximum accidents in 2008
 ```sql
 SELECT TOP 1 pr.D_NAME, p.REG_NO, COUNT(*) AS Acc_Count
 FROM PERSON pr, PARTICIPATED p, ACCIDENT a
@@ -122,7 +118,7 @@ ORDER BY Acc_Count DESC;
 
 ---
 
-### Query 3: Owners who own at least two TOYOTA cars
+### 3. Owners of at least two TOYOTA cars
 ```sql
 SELECT pr.D_NAME
 FROM PERSON pr, OWNS o, CAR c
@@ -138,7 +134,7 @@ HAVING COUNT(*) >= 2;
 
 ---
 
-### Query 4: Owner who owns maximum TOYOTA cars
+### 4. Owner who owns maximum TOYOTA cars
 ```sql
 SELECT TOP 1 pr.D_NAME, COUNT(*) AS Toyota_Count
 FROM PERSON pr, OWNS o, CAR c
@@ -154,7 +150,7 @@ ORDER BY Toyota_Count DESC;
 
 ---
 
-### Query 5: Owner with minimum damage amount in 2008
+### 5. Owner with minimum damage amount in 2008
 ```sql
 SELECT TOP 1 pr.D_NAME, p.DAM_AMOUNT
 FROM PERSON pr, PARTICIPATED p, ACCIDENT a
@@ -166,3 +162,59 @@ ORDER BY p.DAM_AMOUNT ASC;
 | D_NAME | DAM_AMOUNT |
 | :--- | :--- |
 | Nithin | 5000 |
+
+---
+
+### 6. Drivers who live in 'Chicago'
+```sql
+SELECT D_NAME FROM PERSON WHERE ADDR = 'Chicago';
+```
+**Output:**
+| D_NAME |
+| :--- |
+| Rahul |
+| John |
+
+---
+
+### 7. People involved in an accident (Nested Query)
+```sql
+SELECT D_NAME FROM PERSON 
+WHERE D_ID IN (SELECT D_ID FROM PARTICIPATED);
+```
+**Output:**
+| D_NAME |
+| :--- |
+| Nithin |
+| Smitha |
+
+---
+
+### 8. Cars never involved in an accident (Nested Query)
+```sql
+SELECT REG_NO, MODEL FROM CAR 
+WHERE REG_NO NOT IN (SELECT REG_NO FROM PARTICIPATED);
+```
+**Output:**
+| REG_NO | MODEL |
+| :--- | :--- |
+| KA02 | Honda |
+| KA04 | Toyota |
+| KA05 | Toyota |
+| KA06 | Ford |
+
+---
+
+### 9. Owners of cars with damage > average (Nested Query)
+*(Average damage is 15,000; Smitha has 25,000)*
+```sql
+SELECT DISTINCT D_NAME FROM PERSON 
+WHERE D_ID IN (
+    SELECT D_ID FROM PARTICIPATED 
+    WHERE DAM_AMOUNT > (SELECT AVG(DAM_AMOUNT) FROM PARTICIPATED)
+);
+```
+**Output:**
+| D_NAME |
+| :--- |
+| Smitha |

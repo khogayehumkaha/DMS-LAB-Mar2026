@@ -1,11 +1,3 @@
-
-
-# 🎓 Student Database Management System (DBMS Lab)
-
-## 🛠️ 1. Database Schema (DDL)
-This schema manages academic records including departments, students, courses, and marks.
-
-```sql
 CREATE DATABASE StudentDB;
 USE StudentDB;
 
@@ -52,14 +44,8 @@ CREATE TABLE CLASS (
     USN VARCHAR(10) REFERENCES STUDENT(USN),
     PRIMARY KEY (Sem, Sec, USN)
 );
-```
 
----
 
-## 📊 2. Data Insertion (DML)
-*Populated with test cases for 'Computer Science' department, 'CS01' course, and specific semester/section requirements.*
-
-```sql
 -- Insert Departments
 INSERT INTO DEPARTMENT VALUES (1, 'ISE'), (2, 'Computer Science'), (3, 'ECE');
 
@@ -88,133 +74,87 @@ INSERT INTO GRADE_REPORT VALUES ('4NM17IS040', '18IS41', 20, 18, 9, 40, 87);
 INSERT INTO GRADE_REPORT VALUES ('4NM17CS020', 'CS01', 15, 15, 5, 30, 65);
 INSERT INTO GRADE_REPORT VALUES ('4NM17CS021', 'CS01', 22, 20, 8, 45, 95);
 INSERT INTO GRADE_REPORT VALUES ('4NM17EC001', '18IS41', 0, 0, 0, 40, 40); -- No MSE taken
-```
 
----
 
-## 🔍 3. SQL Queries and Results
 
-### 1. Student details in 4th Semester 'B' Section
-```sql
+-- 1. Student details in 4th Semester 'B' Section
+
 SELECT S.* FROM STUDENT S JOIN CLASS C ON S.USN = C.USN
 WHERE C.Sem = 4 AND C.Sec = 'B';
-```
-| USN | Name | DOB | Gender | Address | Dept_Id |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 4NM17IS001 | Abhishek | 1999-05-20 | M | Bangalore | 1 |
-| 4NM17IS040 | Bhavya | 1999-11-15 | F | Mangalore | 1 |
 
----
 
-### 2. Total Male/Female students in each semester and section
-```sql
+
+-- 2. Total Male/Female students in each semester and section
+
+
 SELECT C.Sem, C.Sec, S.Gender, COUNT(*) AS Total_Students
 FROM STUDENT S, CLASS C WHERE S.USN = C.USN
 GROUP BY C.Sem, C.Sec, S.Gender;
-```
-| Sem | Sec | Gender | Total_Students |
-| :--- | :--- | :--- | :--- |
-| 4 | A | F | 1 |
-| 4 | A | M | 1 |
-| 4 | B | F | 1 |
-| 4 | B | M | 1 |
-| 6 | A | F | 1 |
 
----
 
-### 3. View of MSE1 marks for '4NM17IS001'
-```sql
+
+-- 3. View of MSE1 marks for '4NM17IS001'
+
+
 CREATE VIEW Student_MSE1_View AS
 SELECT USN, Course_Id, MSE1 FROM GRADE_REPORT WHERE USN = '4NM17IS001';
 
+--- Verification
 SELECT * FROM Student_MSE1_View;
-```
-| USN | Course_Id | MSE1 |
-| :--- | :--- | :--- |
-| 4NM17IS001 | 18IS41 | 25 |
-| 4NM17IS001 | 18IS42 | 28 |
 
----
 
-### 4. Titles of courses with 4 credits
-```sql
+-- 4. Titles of courses with 4 credits
+
 SELECT Course_Title FROM COURSE WHERE Credits = 4;
-```
-| Course_Title |
-| :--- |
-| Database Management Systems |
-| DAA |
-| Operating Systems |
 
----
 
-### 5. Students scoring more than average 'Total' in 'CS01' (Nested)
-```sql
+-- 5. Students scoring more than average 'Total' in 'CS01' (Nested)
+
 SELECT Name FROM STUDENT WHERE USN IN (
     SELECT USN FROM GRADE_REPORT 
     WHERE Course_Id = 'CS01' AND Total > (SELECT AVG(Total) FROM GRADE_REPORT WHERE Course_Id = 'CS01')
 );
-```
-| Name |
-| :--- |
-| Divya |
 
----
 
-### 6. Students in 'Computer Science' department (Nested)
-```sql
+-- 6. Students in 'Computer Science' department (Nested)
+
+
 SELECT Name FROM STUDENT 
 WHERE Dept_Id = (SELECT Dept_Id FROM DEPARTMENT WHERE Dept_Name = 'Computer Science');
-```
-| Name |
-| :--- |
-| Chetan |
-| Divya |
 
----
 
-### 7. Students with Max 'Total' in 'Database Management Systems'
-```sql
+-- 7. Students with Max 'Total' in 'Database Management Systems'
+
 SELECT S.Name FROM STUDENT S JOIN GRADE_REPORT G ON S.USN = G.USN
 WHERE G.Course_Id = (SELECT Course_Id FROM COURSE WHERE Course_Title = 'Database Management Systems')
 AND G.Total = (SELECT MAX(Total) FROM GRADE_REPORT WHERE Course_Id = (SELECT Course_Id FROM COURSE WHERE Course_Title = 'Database Management Systems'));
-```
-| Name |
-| :--- |
-| Abhishek |
 
----
 
-### 8. Students with highest total marks in each semester (JOIN)
-```sql
+--- 8. Students with highest total marks in each semester (JOIN)
+
+
 SELECT C.Sem, S.Name, G.Total
 FROM STUDENT S 
 JOIN CLASS C ON S.USN = C.USN 
 JOIN GRADE_REPORT G ON S.USN = G.USN
 JOIN (SELECT Sem, MAX(Total) as MaxTotal FROM CLASS C1 JOIN GRADE_REPORT G1 ON C1.USN = G1.USN GROUP BY Sem) AS MaxTable
 ON C.Sem = MaxTable.Sem AND G.Total = MaxTable.MaxTotal;
-```
-| Sem | Name | Total |
-| :--- | :--- | :--- |
-| 4 | Abhishek | 110 |
-| 6 | Divya | 95 |
 
----
 
-### 9. Students who have not taken any MSE exams
-```sql
+
+-- 9. Students who have not taken any MSE exams
+
+
 SELECT Name FROM STUDENT WHERE USN IN (
     SELECT USN FROM GRADE_REPORT WHERE (MSE1 = 0 OR MSE1 IS NULL) AND (MSE2 = 0 OR MSE2 IS NULL)
 );
-```
-| Name |
-| :--- |
-| Esha |
 
----
 
-### 10. Students who have taken MSE in all subjects of their semester (NOT EXISTS)
-```sql
+
+
+--- 10. Students who have taken MSE in all subjects of their semester (NOT EXISTS)
+
+
 SELECT S.Name FROM STUDENT S
 WHERE NOT EXISTS (
     SELECT C.Course_Id FROM COURSE C 
@@ -223,7 +163,6 @@ WHERE NOT EXISTS (
     EXCEPT
     SELECT G.Course_Id FROM GRADE_REPORT G WHERE G.USN = S.USN AND G.MSE1 > 0
 );
-```
-| Name |
-| :--- |
-| Abhishek |
+
+
+

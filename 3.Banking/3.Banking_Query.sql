@@ -1,121 +1,158 @@
-CREATE DATABASE Banking;
-USE Banking;
+CREATE DATABASE Banking_System;
+USE Banking_System;
 
 -- 1. BRANCH Table
-CREATE TABLE Branch (
-    bname VARCHAR(15) PRIMARY KEY,
-    bcity VARCHAR(15),
+CREATE TABLE BRANCH (
+    branch_name VARCHAR(20) PRIMARY KEY,
+    branch_city VARCHAR(20),
     assets REAL
 );
 
 -- 2. ACCOUNT Table
-CREATE TABLE Account (
+CREATE TABLE ACCOUNT (
     accno INT PRIMARY KEY,
-    bname VARCHAR(15) DEFAULT 'Main',
-    balance REAL,
-    FOREIGN KEY(bname) REFERENCES Branch(bname) ON DELETE CASCADE ON UPDATE CASCADE
+    branch_name VARCHAR(20) REFERENCES BRANCH(branch_name) ON DELETE CASCADE,
+    balance REAL
 );
 
 -- 3. CUSTOMER Table
-CREATE TABLE Customer (
-    cname VARCHAR(20) PRIMARY KEY,
-    cstreet VARCHAR(25),
-    ccity VARCHAR(20)
+CREATE TABLE CUSTOMER (
+    customer_name VARCHAR(20) PRIMARY KEY,
+    customer_street VARCHAR(30),
+    customer_city VARCHAR(20)
 );
 
--- 4. LOAN Table
-CREATE TABLE Loan (
-    loan_no INT PRIMARY KEY,
-    bname VARCHAR(15),
-    amount REAL,
-    FOREIGN KEY(bname) REFERENCES Branch(bname) ON DELETE CASCADE ON UPDATE CASCADE
+-- 4. DEPOSITOR Table (Link Customer to Account)
+CREATE TABLE DEPOSITOR (
+    customer_name VARCHAR(20) REFERENCES CUSTOMER(customer_name),
+    accno INT REFERENCES ACCOUNT(accno),
+    PRIMARY KEY (customer_name, accno)
 );
 
--- 5. BORROWER Table
-CREATE TABLE Borrower (
-    cname VARCHAR(20),
-    loan_no INT PRIMARY KEY,
-    FOREIGN KEY(cname) REFERENCES Customer(cname) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY(loan_no) REFERENCES Loan(loan_no) ON DELETE CASCADE ON UPDATE CASCADE
+-- 5. LOAN Table
+CREATE TABLE LOAN (
+    loan_number INT PRIMARY KEY,
+    branch_name VARCHAR(20) REFERENCES BRANCH(branch_name) ON DELETE CASCADE,
+    amount REAL
 );
 
--- 6. DEPOSITOR Table
-CREATE TABLE Depositor (
-    cname VARCHAR(20),
-    accno INT PRIMARY KEY,
-    FOREIGN KEY(accno) REFERENCES Account(accno) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY(cname) REFERENCES Customer(cname) ON DELETE CASCADE ON UPDATE CASCADE
+-- 6. BORROWER Table (Link Customer to Loan)
+CREATE TABLE BORROWER (
+    customer_name VARCHAR(20) REFERENCES CUSTOMER(customer_name),
+    loan_number INT REFERENCES LOAN(loan_number),
+    PRIMARY KEY (customer_name, loan_number)
 );
+
+
+
 
 -- Insert Branches
-INSERT INTO Branch VALUES ('Main', 'Bangalore', 500000);
-INSERT INTO Branch VALUES ('Indiranagar', 'Bangalore', 200000);
-INSERT INTO Branch VALUES ('Udupi_Main', 'Udupi', 300000);
+INSERT INTO BRANCH VALUES ('Main', 'Bangalore', 500000);
+INSERT INTO BRANCH VALUES ('Indiranagar', 'Bangalore', 200000);
+INSERT INTO BRANCH VALUES ('MG Road', 'Bangalore', 150000);
+INSERT INTO BRANCH VALUES ('Brighton', 'Delhi', 300000);
+INSERT INTO BRANCH VALUES ('Perryridge', 'Mumbai', 400000);
 
 -- Insert Customers
-INSERT INTO Customer VALUES ('Avinash', 'Bull Temple Road', 'Bangalore');
-INSERT INTO Customer VALUES ('Dinesh', 'Bannerghatta Road', 'Bangalore');
-INSERT INTO Customer VALUES ('Nikil', 'Manipal Ave', 'Udupi');
+INSERT INTO CUSTOMER VALUES ('Avinash', 'Bull Temple Road', 'Bangalore');
+INSERT INTO CUSTOMER VALUES ('Dinesh', 'Bannerghatta Road', 'Bangalore');
+INSERT INTO CUSTOMER VALUES ('Nikil', 'Manipal Ave', 'Udupi');
+INSERT INTO CUSTOMER VALUES ('Rahul', 'CP', 'Delhi');
 
 -- Insert Accounts
-INSERT INTO Account VALUES (101, 'Main', 5000);
-INSERT INTO Account VALUES (102, 'Main', 10000);
-INSERT INTO Account VALUES (103, 'Indiranagar', 2000);
-INSERT INTO Account VALUES (104, 'Udupi_Main', 8000);
-INSERT INTO Account VALUES (105, 'Main', 7000);
+INSERT INTO ACCOUNT VALUES (101, 'Main', 5000);
+INSERT INTO ACCOUNT VALUES (102, 'Main', 10000);
+INSERT INTO ACCOUNT VALUES (103, 'Indiranagar', 12000);
+INSERT INTO ACCOUNT VALUES (104, 'MG Road', 8000);
+INSERT INTO ACCOUNT VALUES (105, 'Brighton', 6000);
+INSERT INTO ACCOUNT VALUES (106, 'Perryridge', 20000);
 
--- Insert Depositors (Linking Customers to Unique Accounts)
-INSERT INTO Depositor VALUES ('Avinash', 101); -- Avinash Account 1 at Main
-INSERT INTO Depositor VALUES ('Avinash', 102); -- Avinash Account 2 at Main
-INSERT INTO Depositor VALUES ('Avinash', 103); -- Avinash Account at Indiranagar
-INSERT INTO Depositor VALUES ('Dinesh', 105);  -- Dinesh Account at Main (Used 105 instead of 101)
-INSERT INTO Depositor VALUES ('Nikil', 104);
+-- Insert Depositors (Avinash has accounts in ALL Bangalore branches)
+INSERT INTO DEPOSITOR VALUES ('Avinash', 101), ('Avinash', 103), ('Avinash', 104);
+INSERT INTO DEPOSITOR VALUES ('Dinesh', 101), ('Dinesh', 102);
+INSERT INTO DEPOSITOR VALUES ('Nikil', 104);
+INSERT INTO DEPOSITOR VALUES ('Rahul', 105);
 
 -- Insert Loans
-INSERT INTO Loan VALUES (501, 'Main', 50000);
-INSERT INTO Borrower VALUES ('Avinash', 501);
+INSERT INTO LOAN VALUES (501, 'Main', 50000);
+INSERT INTO LOAN VALUES (502, 'Brighton', 5000);
+INSERT INTO LOAN VALUES (503, 'Indiranagar', 12000);
 
---Query 1: Customers with at least two accounts at the 'Main' branch.
+-- Insert Borrowers
+INSERT INTO BORROWER VALUES ('Avinash', 501), ('Dinesh', 503), ('Rahul', 502);
 
-SELECT d.cname 
-FROM Depositor d, Account a
-WHERE d.accno = a.accno AND a.bname = 'Main'
-GROUP BY d.cname
+
+
+-- 1. Customers with at least two accounts at the 'Main' branch
+
+SELECT customer_name 
+FROM DEPOSITOR D, ACCOUNT A
+WHERE D.accno = A.accno AND A.branch_name = 'Main'
+GROUP BY customer_name
 HAVING COUNT(*) >= 2;
 
---Query 2: Customers who have an account at ALL branches in a specific city ('Bangalore').
 
+-- 2. Customers with an account at ALL branches in 'Bangalore'
 
-SELECT d.cname FROM Depositor d
+SELECT customer_name FROM CUSTOMER C
 WHERE NOT EXISTS (
-    (SELECT bname FROM Branch WHERE bcity = 'Bangalore')
+    (SELECT branch_name FROM BRANCH WHERE branch_city = 'Bangalore')
     EXCEPT
-    (SELECT a.bname FROM Account a, Depositor d2 
-     WHERE a.accno = d2.accno AND d2.cname = d.cname)
-)
-GROUP BY d.cname;
+    (SELECT A.branch_name FROM ACCOUNT A, DEPOSITOR D 
+     WHERE A.accno = D.accno AND D.customer_name = C.customer_name)
+);
 
 
---Query 3: Customers with accounts in at least 2 branches in a specific city ('Bangalore').
 
-SELECT d.cname
-FROM Depositor d, Account a, Branch b
-WHERE d.accno = a.accno AND a.bname = b.bname AND b.bcity = 'Bangalore'
-GROUP BY d.cname
-HAVING COUNT(DISTINCT a.bname) >= 2;
+-- 3. Customers with accounts in at least 2 branches in 'Bangalore'
+
+SELECT D.customer_name
+FROM DEPOSITOR D, ACCOUNT A, BRANCH B
+WHERE D.accno = A.accno AND A.branch_name = B.branch_name AND B.branch_city = 'Bangalore'
+GROUP BY D.customer_name
+HAVING COUNT(DISTINCT A.branch_name) >= 2;
 
 
---Query 4: Customers who borrowed a loan from at least one branch in 'Bangalore'.
 
-SELECT DISTINCT cname
-FROM Borrower br, Loan l, Branch b
-WHERE br.loan_no = l.loan_no AND l.bname = b.bname AND b.bcity = 'Bangalore';
+-- 4. Customers who borrowed from at least one branch in 'Bangalore'
 
---Query 5: Branch name with maximum number of customers in 'Bangalore'.
+SELECT DISTINCT customer_name
+FROM BORROWER BR, LOAN L, BRANCH B
+WHERE BR.loan_number = L.loan_number AND L.branch_name = B.branch_name 
+AND B.branch_city = 'Bangalore';
 
-SELECT TOP 1 b.bname, COUNT(DISTINCT d.cname) AS Customer_Count
-FROM Branch b, Account a, Depositor d
-WHERE b.bname = a.bname AND a.accno = d.accno AND b.bcity = 'Bangalore'
-GROUP BY b.bname
-ORDER BY Customer_Count DESC;
+
+-- 5. Branch name with max customers in 'Bangalore'
+
+SELECT TOP 1 branch_name
+FROM (
+    SELECT A.branch_name, COUNT(DISTINCT D.customer_name) as cnt 
+    FROM BRANCH B, ACCOUNT A, DEPOSITOR D 
+    WHERE B.branch_name = A.branch_name AND A.accno = D.accno AND B.branch_city = 'Bangalore' 
+    GROUP BY A.branch_name
+) t ORDER BY cnt DESC;
+
+
+-- 6. Loan numbers with amount > 10,000
+
+SELECT loan_number FROM LOAN WHERE amount > 10000;
+
+
+-- 7. Accounts with balance higher than any account in 'Brighton' (Nested)
+
+SELECT accno FROM ACCOUNT 
+WHERE balance > (SELECT MAX(balance) FROM ACCOUNT WHERE branch_name = 'Brighton');
+
+
+-- 8. Branches with assets > assets of 'Perryridge' (Nested)
+
+SELECT branch_name FROM BRANCH 
+WHERE assets > (SELECT assets FROM BRANCH WHERE branch_name = 'Perryridge');
+
+
+-- 9. Customer with the highest loan amount in the bank (Nested)
+
+SELECT customer_name FROM BORROWER 
+WHERE loan_number = (SELECT loan_number FROM LOAN WHERE amount = (SELECT MAX(amount) FROM LOAN));
+
 
