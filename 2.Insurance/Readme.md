@@ -87,7 +87,7 @@ INSERT INTO PARTICIPATED VALUES ('D111', 'KA01', 1001, 5000),
 
 ## 🔍 3. Queries and Results
 
-### 1. People involved in accidents in 2008
+### 1. List the names of people who owned cars that were involved in accidents in 2008.  
 ```sql
 SELECT DISTINCT pr.D_NAME
 FROM PERSON pr, PARTICIPATED p, ACCIDENT a
@@ -102,7 +102,7 @@ AND a.ACC_DATE LIKE '2008%';
 
 ---
 
-### 2. Owner and Car with maximum accidents in 2008
+### 2.  Find the name of owner and his car that has maximum number of accidents in 2008
 ```sql
 SELECT TOP 1 pr.D_NAME, p.REG_NO, COUNT(*) AS Acc_Count
 FROM PERSON pr, PARTICIPATED p, ACCIDENT a
@@ -118,7 +118,8 @@ ORDER BY Acc_Count DESC;
 
 ---
 
-### 3. Owners of at least two TOYOTA cars
+### 3. List the name of owners who own at least two TOYOTA cars. 
+
 ```sql
 SELECT pr.D_NAME
 FROM PERSON pr, OWNS o, CAR c
@@ -134,7 +135,8 @@ HAVING COUNT(*) >= 2;
 
 ---
 
-### 4. Owner who owns maximum TOYOTA cars
+### 4. List the name of the owner who owns maximum TOYOTA cars.
+
 ```sql
 SELECT TOP 1 pr.D_NAME, COUNT(*) AS Toyota_Count
 FROM PERSON pr, OWNS o, CAR c
@@ -150,7 +152,8 @@ ORDER BY Toyota_Count DESC;
 
 ---
 
-### 5. Owner with minimum damage amount in 2008
+### 5. Find the name of owner who owns cars having minimum damage amount for accidents in 2008 
+
 ```sql
 SELECT TOP 1 pr.D_NAME, p.DAM_AMOUNT
 FROM PERSON pr, PARTICIPATED p, ACCIDENT a
@@ -165,7 +168,8 @@ ORDER BY p.DAM_AMOUNT ASC;
 
 ---
 
-### 6. Drivers who live in 'Chicago'
+### 6. Find the names of drivers who live in 'Chicago'. 
+
 ```sql
 SELECT D_NAME FROM PERSON WHERE ADDR = 'Chicago';
 ```
@@ -177,7 +181,8 @@ SELECT D_NAME FROM PERSON WHERE ADDR = 'Chicago';
 
 ---
 
-### 7. People involved in an accident (Nested Query)
+### 7. List the names of people who have been involved in an accident  using nested query
+
 ```sql
 SELECT D_NAME FROM PERSON 
 WHERE D_ID IN (SELECT D_ID FROM PARTICIPATED);
@@ -190,7 +195,8 @@ WHERE D_ID IN (SELECT D_ID FROM PARTICIPATED);
 
 ---
 
-### 8. Cars never involved in an accident (Nested Query)
+### 8. List the cars that have never been involved in an accident. using nested query
+
 ```sql
 SELECT REG_NO, MODEL FROM CAR 
 WHERE REG_NO NOT IN (SELECT REG_NO FROM PARTICIPATED);
@@ -205,7 +211,7 @@ WHERE REG_NO NOT IN (SELECT REG_NO FROM PARTICIPATED);
 
 ---
 
-### 9. Owners of cars with damage > average (Nested Query)
+### 9. Find the names of persons who own at least one car that has a damage amount greater than the average damage amount of all accidents  using nested query
 *(Average damage is 15,000; Smitha has 25,000)*
 ```sql
 SELECT DISTINCT D_NAME FROM PERSON 
@@ -218,3 +224,50 @@ WHERE D_ID IN (
 | D_NAME |
 | :--- |
 | Smitha |
+
+
+---
+
+### 10.  Create a view to display the owner name and registration number for only those cars that were involved in more than one accident.
+```sql
+CREATE VIEW Multi_Accident_Cars AS
+SELECT pr.D_NAME, p.REG_NO, COUNT(*) AS Total_Accidents
+FROM PERSON pr
+JOIN PARTICIPATED p ON pr.D_ID = p.D_ID
+GROUP BY pr.D_NAME, p.REG_NO
+HAVING COUNT(*) > 1;
+
+-- To View:
+SELECT * FROM Multi_Accident_Cars;
+```
+**Output Table:**
+| D_NAME | REG_NO | Total_Accidents |
+| :--- | :--- | :--- |
+| Smitha | KA03 | 2 |
+
+---
+
+
+### 11. Create a view to display the person name, car model, accident date, and damage amount for all cars involved in accidents.
+```sql
+CREATE VIEW Accident_Summary_View AS
+SELECT pr.D_NAME, c.MODEL, a.ACC_DATE, p.DAM_AMOUNT
+FROM PERSON pr
+JOIN PARTICIPATED p ON pr.D_ID = p.D_ID
+JOIN CAR c ON p.REG_NO = c.REG_NO
+JOIN ACCIDENT a ON p.REPORT_NUM = a.REPORT_NUM;
+
+-- To View:
+SELECT * FROM Accident_Summary_View;
+```
+**Output Table:**
+| D_NAME | MODEL | ACC_DATE | DAM_AMOUNT |
+| :--- | :--- | :--- | :--- |
+| Nithin | Toyota | 2008-05-12 | 5000 |
+| Smitha | Toyota | 2008-08-20 | 25000 |
+| Smitha | Toyota | 2008-12-01 | 15000 |
+
+---
+
+
+### 

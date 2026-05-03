@@ -94,7 +94,7 @@ INSERT INTO GRADE_REPORT VALUES ('4NM17EC001', '18IS41', 0, 0, 0, 40, 40); -- No
 
 ## 🔍 3. SQL Queries and Results
 
-### 1. Student details in 4th Semester 'B' Section
+### 1. List all the student details studying in the fourth semester ‘B’ section.
 ```sql
 SELECT S.* FROM STUDENT S JOIN CLASS C ON S.USN = C.USN
 WHERE C.Sem = 4 AND C.Sec = 'B';
@@ -106,7 +106,7 @@ WHERE C.Sem = 4 AND C.Sec = 'B';
 
 ---
 
-### 2. Total Male/Female students in each semester and section
+### 2. Compute the total number of male and female students in each semester and in each section. 
 ```sql
 SELECT C.Sem, C.Sec, S.Gender, COUNT(*) AS Total_Students
 FROM STUDENT S, CLASS C WHERE S.USN = C.USN
@@ -122,7 +122,7 @@ GROUP BY C.Sem, C.Sec, S.Gender;
 
 ---
 
-### 3. View of MSE1 marks for '4NM17IS001'
+### 3.  Create a view of MSE1 marks of student USN ‘4NM17IS001’ in all subjects.
 ```sql
 CREATE VIEW Student_MSE1_View AS
 SELECT USN, Course_Id, MSE1 FROM GRADE_REPORT WHERE USN = '4NM17IS001';
@@ -136,7 +136,7 @@ SELECT * FROM Student_MSE1_View;
 
 ---
 
-### 4. Titles of courses with 4 credits
+### 4. Find the titles of courses that offer 4 credits 
 ```sql
 SELECT Course_Title FROM COURSE WHERE Credits = 4;
 ```
@@ -148,7 +148,7 @@ SELECT Course_Title FROM COURSE WHERE Credits = 4;
 
 ---
 
-### 5. Students scoring more than average 'Total' in 'CS01' (Nested)
+### 5.  Find students who scored more than the average 'Total' marks in the course 'CS01'. Using nested query
 ```sql
 SELECT Name FROM STUDENT WHERE USN IN (
     SELECT USN FROM GRADE_REPORT 
@@ -161,7 +161,7 @@ SELECT Name FROM STUDENT WHERE USN IN (
 
 ---
 
-### 6. Students in 'Computer Science' department (Nested)
+### 6. Find the names of students who are in the 'Computer Science' department.  Using nested query
 ```sql
 SELECT Name FROM STUDENT 
 WHERE Dept_Id = (SELECT Dept_Id FROM DEPARTMENT WHERE Dept_Name = 'Computer Science');
@@ -173,7 +173,7 @@ WHERE Dept_Id = (SELECT Dept_Id FROM DEPARTMENT WHERE Dept_Name = 'Computer Scie
 
 ---
 
-### 7. Students with Max 'Total' in 'Database Management Systems'
+### 7. Find the names of students who have secured the maximum 'Total' marks in the course 'Database Management Systems'. 
 ```sql
 SELECT S.Name FROM STUDENT S JOIN GRADE_REPORT G ON S.USN = G.USN
 WHERE G.Course_Id = (SELECT Course_Id FROM COURSE WHERE Course_Title = 'Database Management Systems')
@@ -185,7 +185,7 @@ AND G.Total = (SELECT MAX(Total) FROM GRADE_REPORT WHERE Course_Id = (SELECT Cou
 
 ---
 
-### 8. Students with highest total marks in each semester (JOIN)
+### 8. Find the students with the highest total marks in each semester. (Use JOIN)
 ```sql
 SELECT C.Sem, S.Name, G.Total
 FROM STUDENT S 
@@ -201,7 +201,7 @@ ON C.Sem = MaxTable.Sem AND G.Total = MaxTable.MaxTotal;
 
 ---
 
-### 9. Students who have not taken any MSE exams
+### 9. Find students who have not taken any MSE exams.
 ```sql
 SELECT Name FROM STUDENT WHERE USN IN (
     SELECT USN FROM GRADE_REPORT WHERE (MSE1 = 0 OR MSE1 IS NULL) AND (MSE2 = 0 OR MSE2 IS NULL)
@@ -213,7 +213,7 @@ SELECT Name FROM STUDENT WHERE USN IN (
 
 ---
 
-### 10. Students who have taken MSE in all subjects of their semester (NOT EXISTS)
+### 10. Find students who have taken MSE exams in all subjects of their semester. (Use NOT EXISTS)
 ```sql
 SELECT S.Name FROM STUDENT S
 WHERE NOT EXISTS (

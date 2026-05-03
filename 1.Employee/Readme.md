@@ -106,7 +106,7 @@ INSERT INTO DEPENDENT VALUES ('102', 'Bob', 'M', '2012-05-05', 'Son');
 
 ## 🔍 3. Queries and Results
 
-### 1. Employees working on all projects controlled by Dept 5
+### 1. Retrieve the name of each employee who works on all the projects controlled by department number 5 
 ```sql
 SELECT FName, LName FROM EMPLOYEE E
 WHERE NOT EXISTS (
@@ -122,7 +122,7 @@ WHERE NOT EXISTS (
 
 ---
 
-### 2. Dept # and Count of employees making > 10,00,000 (in depts with > 5 staff)
+### 2. For each department that has more than five employees, retrieve the department number and the number of its employees who are making more than Rs. 10,00,000.
 *(Note: To see results with small sample data, we use `HAVING COUNT(*) >= 3`)*
 ```sql
 SELECT DNo, COUNT(*) AS High_Earners
@@ -139,7 +139,7 @@ HAVING DNo IN (SELECT DNo FROM EMPLOYEE GROUP BY DNo HAVING COUNT(*) >= 3);
 
 ---
 
-### 3. Projects involving 'Codd' as a worker or manager
+### 3. Make a list of all project numbers for projects that involve an employee whose last name is ‘Codd’, either as a worker or as a manager of the department that controls the project. 
 ```sql
 SELECT DISTINCT PNo FROM WORKS_ON WHERE SSN = (SELECT SSN FROM EMPLOYEE WHERE LName='Codd')
 UNION
@@ -155,7 +155,7 @@ WHERE P.DNo = D.DNo AND D.MgrSSN = (SELECT SSN FROM EMPLOYEE WHERE LName = 'Codd
 
 ---
 
-### 4. Project names located in 'Stafford'
+### 4. Show all project names located in 'Stafford'. 
 ```sql
 SELECT PName FROM PROJECT WHERE PLocation = 'Stafford';
 ```
@@ -167,7 +167,7 @@ SELECT PName FROM PROJECT WHERE PLocation = 'Stafford';
 
 ---
 
-### 5. Employees with at least one dependent (Nested Query)
+### 5. List all employees who have at least one dependent using nested queries
 ```sql
 SELECT FName, LName FROM EMPLOYEE 
 WHERE SSN IN (SELECT ESSN FROM DEPENDENT);
@@ -180,7 +180,8 @@ WHERE SSN IN (SELECT ESSN FROM DEPENDENT);
 
 ---
 
-### 6. Employees in 'Research' department (Nested Query)
+### 6.  Retrieve the names of employees who work in the 'Research' department using nested queries 
+
 ```sql
 SELECT FName, LName FROM EMPLOYEE 
 WHERE DNo = (SELECT DNo FROM DEPARTMENT WHERE DName = 'Research');
@@ -194,7 +195,8 @@ WHERE DNo = (SELECT DNo FROM DEPARTMENT WHERE DName = 'Research');
 
 ---
 
-### 7. Managers who have at least one dependent (Nested Query)
+### 7.List the names of managers who have at least one dependent  using nested queries
+
 ```sql
 SELECT FName, LName FROM EMPLOYEE 
 WHERE SSN IN (SELECT MgrSSN FROM DEPARTMENT)
@@ -208,7 +210,7 @@ AND SSN IN (SELECT ESSN FROM DEPENDENT);
 
 ---
 
-### 8. 10% raise for employees on 'Smart City' project
+### 8. Show the resulting salaries if every employee working on the ‘Smart City’ project is given a 10 percent raise.
 ```sql
 SELECT FName, LName, Salary AS Old_Salary, (Salary * 1.1) AS New_Salary
 FROM EMPLOYEE 
@@ -222,7 +224,8 @@ WHERE SSN IN (SELECT SSN FROM WORKS_ON WHERE PNo IN (SELECT PNo FROM PROJECT WHE
 
 ---
 
-### 9. Salary statistics for 'Information Science' department
+### 9. Find the sum of the salaries of all employees of the ‘Information Science’ department, as well as the maximum salary, the minimum salary, and the average salary in this department. 
+
 ```sql
 SELECT SUM(Salary) AS Total, MAX(Salary) AS Max, MIN(Salary) AS Min, AVG(Salary) AS Avg
 FROM EMPLOYEE 
@@ -232,3 +235,62 @@ WHERE DNo = (SELECT DNo FROM DEPARTMENT WHERE DName='Information Science');
 | Total | Max | Min | Avg |
 | :--- | :--- | :--- | :--- |
 | 3150000.00 | 1100000.00 | 950000.00 | 1050000.00 |
+
+---
+
+### 10. Retrieve the names of employees whose salary is greater than the average salary of their respective department.
+
+```sql
+SELECT FName, LName, Salary 
+FROM EMPLOYEE E
+WHERE Salary > (SELECT AVG(Salary) FROM EMPLOYEE WHERE DNo = E.DNo);
+```
+**Output:**
+| FName | LName | Salary |
+| :--- | :--- | :--- |
+| Suhas | B | 1500000.00 |
+| Chetan | R | 1100000.00 |
+| James | Codd | 1100000.00 | 
+
+---
+
+
+### 11.  For each department, retrieve the department name and the number of employees who are actively assigned to at least one project.
+
+```sql
+SELECT D.DName, COUNT(DISTINCT W.SSN) AS Active_Workers
+FROM DEPARTMENT D
+JOIN EMPLOYEE E ON D.DNo = E.DNo
+JOIN WORKS_ON W ON E.SSN = W.SSN
+GROUP BY D.DName;
+```
+**Output:**
+| DName | Active_Workers |
+| :--- | :--- |
+| Information Science | 1 |
+| Research | 1 |
+
+---
+
+### 12.  Create a view to display employee name, department name, and project name for employees working on at least one project.
+
+```sql
+CREATE VIEW Employee_Project_Summary AS
+SELECT E.FName + ' ' + E.LName AS Full_Name, D.DName, P.PName
+FROM EMPLOYEE E
+JOIN DEPARTMENT D ON E.DNo = D.DNo
+JOIN WORKS_ON W ON E.SSN = W.SSN
+JOIN PROJECT P ON W.PNo = P.PNo;
+
+-- Verification
+SELECT * FROM Employee_Project_Summary;
+```
+**Output:**
+| Full_Name | DName | PName |
+| :--- | :--- | :--- |
+| James Codd | Information Science | Big Data |
+| James Codd | Information Science | Smart City |
+| James Codd | Information Science | Cloud Arch |
+| Suhas B | Research | Smart City |
+
+---

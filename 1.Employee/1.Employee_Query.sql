@@ -92,7 +92,7 @@ INSERT INTO DEPENDENT VALUES ('102', 'Bob', 'M', '2012-05-05', 'Son');
 
 
 
--- 1. Employees working on all projects controlled by Dept 5
+-- 1. Retrieve the name of each employee who works on all the projects controlled by department number 5 
 
 SELECT FName, LName FROM EMPLOYEE E
 WHERE NOT EXISTS (
@@ -101,7 +101,7 @@ WHERE NOT EXISTS (
     (SELECT PNo FROM WORKS_ON W WHERE W.SSN = E.SSN)
 );
 
--- 2. Dept # and Count of employees making > 10,00,000 (in depts with > 5 staff)
+-- 2. For each department that has more than five employees, retrieve the department number and the number of its employees who are making more than Rs. 10,00,000.
 -- (Note: To see results with small sample data, we use HAVING COUNT(*) >= 3)
 
 SELECT DNo, COUNT(*) AS High_Earners
@@ -110,7 +110,8 @@ WHERE Salary > 1000000
 GROUP BY DNo
 HAVING DNo IN (SELECT DNo FROM EMPLOYEE GROUP BY DNo HAVING COUNT(*) >= 3);
 
--- 3. Projects involving 'Codd' as a worker or manager
+-- 3.  Make a list of all project numbers for projects that involve an employee whose last name is ‘Codd’, either as a worker or as a manager of the department that controls the project. 
+
 
 SELECT DISTINCT PNo FROM WORKS_ON WHERE SSN = (SELECT SSN FROM EMPLOYEE WHERE LName='Codd')
 UNION
@@ -118,40 +119,71 @@ SELECT DISTINCT P.PNo FROM PROJECT P, DEPARTMENT D
 WHERE P.DNo = D.DNo AND D.MgrSSN = (SELECT SSN FROM EMPLOYEE WHERE LName = 'Codd');
 
 
--- 4. Project names located in 'Stafford'
+-- 4.  Show all project names located in 'Stafford'. 
 
 SELECT PName FROM PROJECT WHERE PLocation = 'Stafford';
 
 
--- 5. Employees with at least one dependent (Nested Query)
+-- 5. List all employees who have at least one dependent using nested queries 
 
 SELECT FName, LName FROM EMPLOYEE 
 WHERE SSN IN (SELECT ESSN FROM DEPENDENT);
 
 
--- 6. Employees in 'Research' department (Nested Query)
+-- 6. Retrieve the names of employees who work in the 'Research' department using nested queries 
 
 SELECT FName, LName FROM EMPLOYEE 
 WHERE DNo = (SELECT DNo FROM DEPARTMENT WHERE DName = 'Research');
 
--- 7. Managers who have at least one dependent (Nested Query)
+-- 7. List the names of managers who have at least one dependent  using nested queries
 
 SELECT FName, LName FROM EMPLOYEE 
 WHERE SSN IN (SELECT MgrSSN FROM DEPARTMENT)
 AND SSN IN (SELECT ESSN FROM DEPENDENT);
 
 
---  8. 10% raise for employees on 'Smart City' project
+--  8. Show the resulting salaries if every employee working on the ‘Smart City’ project is given a 10 percent raise.
 
 SELECT FName, LName, Salary AS Old_Salary, (Salary * 1.1) AS New_Salary
 FROM EMPLOYEE 
 WHERE SSN IN (SELECT SSN FROM WORKS_ON WHERE PNo IN (SELECT PNo FROM PROJECT WHERE PName='Smart City'));
 
 
--- 9. Salary statistics for 'Information Science' department
+-- 9. Find the sum of the salaries of all employees of the ‘Information Science’ department, as well as the maximum salary, the minimum salary, and the average salary in this department. 
 
 SELECT SUM(Salary) AS Total, MAX(Salary) AS Max, MIN(Salary) AS Min, AVG(Salary) AS Avg
 FROM EMPLOYEE 
 WHERE DNo = (SELECT DNo FROM DEPARTMENT WHERE DName='Information Science');
+
+
+-- 10. Retrieve the names of employees whose salary is greater than the average salary of their respective department.
+
+SELECT FName, LName, Salary 
+FROM EMPLOYEE E
+WHERE Salary > (SELECT AVG(Salary) FROM EMPLOYEE WHERE DNo = E.DNo);
+
+
+-- 11. For each department, retrieve the department name and the number of employees who are actively assigned to at least one project.
+
+SELECT D.DName, COUNT(DISTINCT W.SSN) AS Active_Workers
+FROM DEPARTMENT D
+JOIN EMPLOYEE E ON D.DNo = E.DNo
+JOIN WORKS_ON W ON E.SSN = W.SSN
+GROUP BY D.DName;
+
+
+-- 12. Create a view to display employee name, department name, and project name for employees working on at least one project.
+
+CREATE VIEW Employee_Project_Summary AS
+SELECT E.FName + ' ' + E.LName AS Full_Name, D.DName, P.PName
+FROM EMPLOYEE E
+JOIN DEPARTMENT D ON E.DNo = D.DNo
+JOIN WORKS_ON W ON E.SSN = W.SSN
+JOIN PROJECT P ON W.PNo = P.PNo;
+
+-- Verification
+SELECT * FROM Employee_Project_Summary;
+
+
 
 

@@ -97,7 +97,7 @@ INSERT INTO BORROWER VALUES ('Avinash', 501), ('Dinesh', 503), ('Rahul', 502);
 
 ## 🔍 3. Updated SQL Queries and Results
 
-### 1. Customers with at least two accounts at the 'Main' branch
+### 1. Find all the customers who have at least two accounts at the Main branch
 ```sql
 SELECT customer_name 
 FROM DEPOSITOR D, ACCOUNT A
@@ -112,7 +112,7 @@ HAVING COUNT(*) >= 2;
 
 ---
 
-### 2. Customers with an account at ALL branches in 'Bangalore'
+### 2. Find all the customers who have an account at all the branches located in a specific city
 ```sql
 SELECT customer_name FROM CUSTOMER C
 WHERE NOT EXISTS (
@@ -129,7 +129,7 @@ WHERE NOT EXISTS (
 
 ---
 
-### 3. Customers with accounts in at least 2 branches in 'Bangalore'
+### 3.  Find all the customers who have accounts in at least 2 branches located in a specific city.
 ```sql
 SELECT D.customer_name
 FROM DEPOSITOR D, ACCOUNT A, BRANCH B
@@ -144,7 +144,7 @@ HAVING COUNT(DISTINCT A.branch_name) >= 2;
 
 ---
 
-### 4. Customers who borrowed from at least one branch in 'Bangalore'
+### 4. Find all the customers who have borrowed loans from at least one branch that is located in a specific city.
 ```sql
 SELECT DISTINCT customer_name
 FROM BORROWER BR, LOAN L, BRANCH B
@@ -159,7 +159,7 @@ AND B.branch_city = 'Bangalore';
 
 ---
 
-### 5. Branch name with max customers in 'Bangalore'
+### 5. Find the branch name that has maximum number of customers in a specific city 
 ```sql
 SELECT TOP 1 branch_name
 FROM (
@@ -176,7 +176,7 @@ FROM (
 
 ---
 
-### 6. Loan numbers with amount > 10,000
+### 6. Find the loan numbers for loans with an amount greater than 10,000.
 ```sql
 SELECT loan_number FROM LOAN WHERE amount > 10000;
 ```
@@ -188,7 +188,7 @@ SELECT loan_number FROM LOAN WHERE amount > 10000;
 
 ---
 
-### 7. Accounts with balance higher than any account in 'Brighton' (Nested)
+### 7. List the accounts that have a balance higher than any account in the 'Brighton' branch.using nested query
 ```sql
 SELECT accno FROM ACCOUNT 
 WHERE balance > (SELECT MAX(balance) FROM ACCOUNT WHERE branch_name = 'Brighton');
@@ -203,7 +203,7 @@ WHERE balance > (SELECT MAX(balance) FROM ACCOUNT WHERE branch_name = 'Brighton'
 
 ---
 
-### 8. Branches with assets > assets of 'Perryridge' (Nested)
+### 8. Find the names of branches that have assets greater than the assets of the 'Perryridge' branch using nested query
 ```sql
 SELECT branch_name FROM BRANCH 
 WHERE assets > (SELECT assets FROM BRANCH WHERE branch_name = 'Perryridge');
@@ -215,7 +215,7 @@ WHERE assets > (SELECT assets FROM BRANCH WHERE branch_name = 'Perryridge');
 
 ---
 
-### 9. Customer with the highest loan amount in the bank (Nested)
+### 9. Find the name of the customer who has the loan with the highest amount in the bank.using nested query
 ```sql
 SELECT customer_name FROM BORROWER 
 WHERE loan_number = (SELECT loan_number FROM LOAN WHERE amount = (SELECT MAX(amount) FROM LOAN));

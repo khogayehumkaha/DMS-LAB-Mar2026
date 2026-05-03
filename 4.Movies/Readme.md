@@ -96,7 +96,7 @@ INSERT INTO RATINGS VALUES (1, 501, 4), (2, 501, 3), -- Avg 3.5
 
 ## 🔍 3. SQL Queries and Results
 
-### 1. Actors who acted before 2000 and after 2017
+### 1. List all actors who acted in a movie before 2000 and also in a movie after 2017. 
 ```sql
 SELECT A.Act_Name FROM ACTOR A
 JOIN MOVIE_CAST MC ON A.Act_id = MC.Act_id
@@ -115,7 +115,7 @@ WHERE M.Mov_Year > 2017;
 
 ---
 
-### 2. Movie Title, Number of Stars, and Highest Rating
+### 2. Find the title of movies and number of stars for each movie that has at least one rating and find the highest number of stars that movie received. Sort the result by movie title. 
 ```sql
 SELECT M.Mov_Title, COUNT(R.Stars) AS Num_Ratings, MAX(R.Stars) AS Highest_Stars
 FROM MOVIES M, RATINGS R
@@ -134,6 +134,7 @@ ORDER BY M.Mov_Title;
 ---
 
 ### 3. Update rating of all movies directed by ‘Subhash Ghai’ to 5
+
 ```sql
 UPDATE RATINGS
 SET Stars = 5
@@ -153,7 +154,7 @@ SELECT M.Mov_Title, R.Stars FROM MOVIES M JOIN RATINGS R ON M.Mov_id = R.Mov_id 
 
 ---
 
-### 4. Actors worked in at least two movies with rating ≥ 4 (Using EXISTS)
+### 4.  Find actors who have worked in at least two movies with a rating of 4 stars or higher. (Use EXISTS)
 ```sql
 SELECT A.Act_Name FROM ACTOR A
 WHERE EXISTS (
@@ -171,7 +172,7 @@ WHERE EXISTS (
 
 ---
 
-### 5. Categorize movies based on rating (Block Buster, Super Hit, Flop)
+### 5. Categorize movies based on the following criterion: If rating = 4.5 to 5 then Review = ‘Block Buster’ If rating = 3.5 to 4.4 then Review = ‘Super Hit’ Else Review = ‘Flop’. (Use JOIN)
 ```sql
 SELECT M.Mov_Title, AVG(R.Stars) AS Avg_Rating,
 CASE 
@@ -190,3 +191,100 @@ GROUP BY M.Mov_Title;
 | War | 4.0 | Super Hit |
 | Ram Lakhan | 5.0 | Block Buster |
 | KRRISH | 4.5 | Block Buster |
+
+
+### 6.  Find the names of actors who have acted in more movies than the average number of movies acted by all actors.
+```sql
+SELECT A.Act_Name 
+FROM ACTOR A
+JOIN MOVIE_CAST MC ON A.Act_id = MC.Act_id
+GROUP BY A.Act_id, A.Act_Name
+HAVING COUNT(MC.Mov_id) > (
+    SELECT AVG(Movie_Count) 
+    FROM (SELECT COUNT(Mov_id) AS Movie_Count FROM MOVIE_CAST GROUP BY Act_id) AS Temp
+);
+```
+**Output Table:**
+| Act_Name |
+| :--- |
+| Anil Kapoor |
+| Hrithik Roshan |
+
+---
+
+### 7. Find the movie titles that have received ratings from **all** viewers registered in the database.
+```sql
+SELECT M.Mov_Title FROM MOVIES M
+WHERE NOT EXISTS (
+    SELECT Viewer_ID FROM VIEWER
+    EXCEPT
+    SELECT Viewer_ID FROM RATINGS R WHERE R.Mov_id = M.Mov_id
+);
+```
+**Output Table:**
+| Mov_Title |
+| :--- |
+| Ram Lakhan |
+| Inception |
+| War |
+
+---
+
+### 8. Retrieve movie titles whose average rating is higher than the overall average rating of all movie ratings in the system.
+```sql
+SELECT M.Mov_Title, AVG(R.Stars) as Avg_Stars
+FROM MOVIES M
+JOIN RATINGS R ON M.Mov_id = R.Mov_id
+GROUP BY M.Mov_Title
+HAVING AVG(R.Stars) > (SELECT AVG(Stars) FROM RATINGS);
+```
+**Output Table:**
+| Mov_Title | Avg_Stars |
+| :--- | :--- |
+| Ram Lakhan | 5.0 |
+| War | 4.0 |
+| KRRISH | 4.5 |
+
+---
+
+### 9. Find actors who have acted in at least 2 different movies, and **all** those movies were released after 2005.
+```sql
+SELECT A.Act_Name 
+FROM ACTOR A
+WHERE (SELECT COUNT(MC.Mov_id) FROM MOVIE_CAST MC WHERE MC.Act_id = A.Act_id) >= 2
+AND NOT EXISTS (
+    SELECT * FROM MOVIE_CAST MC 
+    JOIN MOVIES M ON MC.Mov_id = M.Mov_id
+    WHERE MC.Act_id = A.Act_id AND M.Mov_Year <= 2005
+);
+```
+**Output Table:**
+| Act_Name |
+| :--- |
+| Hrithik Roshan |
+
+---
+
+### 10. List the names of directors whose movie actors have also acted in movies directed by other (different) directors.
+```sql
+SELECT DISTINCT D.Dir_Name
+FROM DIRECTOR D
+JOIN MOVIES M ON D.Dir_id = M.Dir_id
+JOIN MOVIE_CAST MC ON M.Mov_id = MC.Mov_id
+WHERE MC.Act_id IN (
+    SELECT MC2.Act_id 
+    FROM MOVIE_CAST MC2
+    JOIN MOVIES M2 ON MC2.Mov_id = M2.Mov_id
+    WHERE M2.Dir_id <> D.Dir_id
+);
+```
+
+
+**Output:**
+| Dir_Name |
+| :--- |
+| Subhash Ghai |
+| Siddharth Anand |
+
+---
+
