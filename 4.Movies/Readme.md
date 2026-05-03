@@ -267,6 +267,11 @@ AND NOT EXISTS (
 
 ### 10. List the names of directors whose movie actors have also acted in movies directed by other (different) directors.
 ```sql
+
+-- for below o/p: 
+INSERT INTO MOVIE_CAST VALUES (101, 504, 'Spy');
+
+
 SELECT DISTINCT D.Dir_Name
 FROM DIRECTOR D
 JOIN MOVIES M ON D.Dir_id = M.Dir_id
